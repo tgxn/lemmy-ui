@@ -22,10 +22,11 @@ import {
   ListingType,
 } from "lemmy-js-client";
 import { InitialFetchRequest } from "../../interfaces";
-import { FirstLoadService, I18NextService } from "../../services";
+import { FirstLoadService, I18NextService, UserService } from "../../services";
 import { HttpService, RequestState } from "../../services/HttpService";
 import { HtmlTags } from "../common/html-tags";
 import { Spinner } from "../common/icon";
+import { ListingNSFWSelect } from "../common/listing-nsfw-select";
 import { ListingTypeSelect } from "../common/listing-type-select";
 import { Paginator } from "../common/paginator";
 import { CommunityLink } from "./community-link";
@@ -45,6 +46,7 @@ interface CommunitiesState {
 
 interface CommunitiesProps {
   listingType: ListingType;
+  showNsfw: boolean;
   page: number;
 }
 
@@ -112,6 +114,13 @@ export class Communities extends Component<any, CommunitiesState> {
                   showLocal={showLocal(this.isoData)}
                   showSubscribed
                   onChange={this.handleListingTypeChange}
+                />
+                <ListingNSFWSelect
+                  value={
+                    UserService.Instance.myUserInfo?.local_user_view.local_user
+                      .show_nsfw || false
+                  }
+                  // onChange={this.handleShowNsfwChange}
                 />
               </div>
               <div className="col-auto">{this.searchForm()}</div>
@@ -277,6 +286,13 @@ export class Communities extends Component<any, CommunitiesState> {
     });
   }
 
+  handleShowNsfwChange(showNsfw: boolean) {
+    this.updateUrl({
+      showNsfw,
+      page: 1,
+    });
+  }
+
   handleSearchChange(i: Communities, event: any) {
     i.setState({ searchText: event.target.value });
   }
@@ -299,6 +315,7 @@ export class Communities extends Component<any, CommunitiesState> {
       sort: "TopMonth",
       limit: communityLimit,
       page: getPageFromString(page),
+      show_nsfw: false,
       auth: auth,
     };
 
